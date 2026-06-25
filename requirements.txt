@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+opencv-python-headless
+ultralytics
+transformers
+Pillow
+torch
+numpy
+streamlit
+requests
