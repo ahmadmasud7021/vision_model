@@ -137,10 +137,10 @@ For smoother cold starts, use a paid Render plan with enough memory for Torch, T
 
 For Hugging Face Spaces, create a **Docker Space** and push this repository to the Space git remote.
 
-The included `Dockerfile` runs FastAPI on port `7860`, which is the default port expected by Spaces:
+The included `Dockerfile` runs the Streamlit frontend on port `7860`, which is the default port expected by Spaces. In Spaces, the frontend runs in direct model mode and calls the local YOLO/BLIP pipeline without needing a separate FastAPI URL:
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 7860
+streamlit run frontend.py --server.address 0.0.0.0 --server.port 7860
 ```
 
 After creating a Docker Space on Hugging Face, add it as a second git remote:
@@ -150,16 +150,16 @@ git remote add space https://huggingface.co/spaces/YOUR_USERNAME/vision-scene-ai
 git push space main
 ```
 
-Your API will be available at:
+Your interactive demo will be available at:
 
 ```text
 https://YOUR_USERNAME-vision-scene-ai.hf.space/
 ```
 
-Interactive API docs:
+If you want to deploy the FastAPI API instead of the visual Streamlit demo, change the Docker `CMD` back to:
 
-```text
-https://YOUR_USERNAME-vision-scene-ai.hf.space/docs
+```dockerfile
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
 ```
 
 ## Notes

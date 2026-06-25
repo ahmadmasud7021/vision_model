@@ -1,12 +1,22 @@
 import base64
 from io import BytesIO
+import os
 
 import requests
 import streamlit as st
 from PIL import Image
 
+from app.models import get_model_bundle
+from app.processing import analyze_image
+
 
 DEFAULT_API_URL = "http://localhost:8000"
+DIRECT_MODE = os.getenv("VISIONSCENE_DIRECT_MODE", "false").lower() == "true"
+
+
+@st.cache_resource(show_spinner="Loading YOLO and BLIP models...")
+def load_models():
+    return get_model_bundle()
 
 
 st.set_page_config(page_title="VisionScene AI", layout="wide")
@@ -101,9 +111,13 @@ st.markdown(
 )
 
 with st.sidebar:
-    st.header("Connection")
-    api_url = st.text_input("FastAPI URL", value=DEFAULT_API_URL).rstrip("/")
-    st.caption("Use localhost while developing. Replace this with your deployed API URL on Render.")
+    if DIRECT_MODE:
+        st.header("Runtime")
+        st.success("Running directly on Hugging Face Spaces")
+    else:
+        st.header("Connection")
+        api_url = st.text_input("FastAPI URL", value=DEFAULT_API_URL).rstrip("/")
+        st.caption("Use localhost while developing. Replace this with your deployed API URL on Render.")
 
     st.header("Upload")
     uploaded_file = st.file_uploader("Image file", type=["jpg", "jpeg", "png", "webp"])
@@ -123,22 +137,37 @@ if uploaded_file is not None:
         st.subheader("Analysis")
 
         if st.button("Analyze image", type="primary"):
-            files = {
-                "file": (
-                    uploaded_file.name,
-                    uploaded_file.getvalue(),
-                    uploaded_file.type or "application/octet-stream",
-                )
-            }
-
             with st.spinner("Analyzing image..."):
                 try:
-                    response = requests.post(f"{api_url}/analyze", files=files, timeout=120)
-                    response.raise_for_status()
+                    if DIRECT_MODE:
+                        caption, detections, counts, annotated_image_base64 = analyze_image(
+                            image_bytes=uploaded_file.getvalue(),
+                            models=load_models(),
+                        )
+                        result = {
+                            "caption": caption,
+                            "detections": [detection.model_dump() for detection in detections],
+                            "counts": counts,
+                            "annotated_image_base64": annotated_image_base64,
+                        }
+                    else:
+                        files = {
+                            "file": (
+                                uploaded_file.name,
+                                uploaded_file.getvalue(),
+                                uploaded_file.type or "application/octet-stream",
+                            )
+                        }
+                        response = requests.post(f"{api_url}/analyze", files=files, timeout=120)
+                        response.raise_for_status()
+                        result = response.json()
                 except requests.RequestException as exc:
                     st.error(f"Analysis failed: {exc}")
+                    st.stop()
+                except ValueError as exc:
+                    st.error(str(exc))
+                    st.stop()
                 else:
-                    result = response.json()
                     detections = result.get("detections", [])
                     counts = result.get("counts", {})
 
