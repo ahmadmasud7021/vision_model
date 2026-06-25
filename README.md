@@ -1,3 +1,12 @@
+---
+title: VisionScene AI
+emoji: 🖼️
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # VisionScene AI
 
 VisionScene AI is a deployable FastAPI project for image scene understanding. It accepts an uploaded image, preprocesses it with OpenCV, detects objects with YOLO11n, captions the scene with BLIP, and returns a JSON response with an annotated image.
