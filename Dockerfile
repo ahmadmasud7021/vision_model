@@ -19,4 +19,4 @@ COPY frontend.py .
 
 EXPOSE 7860
 
-CMD ["streamlit", "run", "frontend.py", "--server.address", "0.0.0.0", "--server.port", "7860"]
+CMD ["streamlit", "run", "frontend.py", "--server.address", "0.0.0.0", "--server.port", "7860", "--server.headless", "true", "--server.enableCORS", "false", "--server.enableXsrfProtection", "false"]
