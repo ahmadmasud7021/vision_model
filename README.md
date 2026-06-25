@@ -124,6 +124,35 @@ This repository includes `render.yaml` for Render Blueprint deployment.
 
 For smoother cold starts, use a paid Render plan with enough memory for Torch, Transformers, YOLO, and BLIP. The app uses CPU unless Render provides a CUDA-capable environment.
 
+## Hugging Face Spaces Deployment
+
+For Hugging Face Spaces, create a **Docker Space** and push this repository to the Space git remote.
+
+The included `Dockerfile` runs FastAPI on port `7860`, which is the default port expected by Spaces:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 7860
+```
+
+After creating a Docker Space on Hugging Face, add it as a second git remote:
+
+```bash
+git remote add space https://huggingface.co/spaces/YOUR_USERNAME/vision-scene-ai
+git push space main
+```
+
+Your API will be available at:
+
+```text
+https://YOUR_USERNAME-vision-scene-ai.hf.space/
+```
+
+Interactive API docs:
+
+```text
+https://YOUR_USERNAME-vision-scene-ai.hf.space/docs
+```
+
 ## Notes
 
 - `opencv-python-headless` is used for server deployments.
